@@ -1,0 +1,119 @@
+---
+title: "Analisis de Componentes principales"
+author: Gonzalo J. Ale Pezo
+institute: "DEPARTAMENTO DE MATEMÁTICA Y ESTADÍSTICA, UNSAAC"
+date:  "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE, cho = FALSE, warning = FALSE, message = FALSE)
+```
+
+<style>
+body {
+text-align: justify}
+</style>
+
+# PCA Overview
+
+- PCA is used in exploratory data analysis and for making decisions in predictive models.
+
+- PCA commonly used for dimensionality reduction by using each data point onto only the first few principal components (most cases first and second dimensions) to obtain lower-dimensional data while keeping as much of the data’s variation as possible.
+
+- The first principal component can equivalently be defined as a direction that maximizes the variance of the projected data.
+
+- The principal components are often analyzed by eigendecomposition of the data covariance matrix or singular value decomposition (SVD) of the data matrix.
+
+- Reducing the number of variables from a data set naturally leads to inaccuracy, but the trick in the dimensionality reduction is to allow us to make correct decisions based on high accuracy.
+
+# Iris data set
+
+```{r}
+data("iris")
+str(iris)
+```
+# Scatter Plot & Correlations
+
+```{r}
+library(psych)
+pairs.panels(iris[,-5],
+             gap = 0,
+             bg = c("red", "yellow", "blue")[iris$Species],
+             pch=21)
+
+```
+
+# R package
+
+```{r}
+pc <- prcomp(iris[,-5],
+             center = TRUE,
+            scale. = TRUE)
+attributes(pc)
+```
+```{r}
+pc$center
+```
+
+```{r}
+print(pc)
+```
+```{r}
+summary(pc)
+```
+
+# Orthogonality of PCs
+
+```{r}
+pairs.panels(pc$x,
+             gap=0,
+             bg = c("red", "yellow", "blue")[iris$Species],
+             pch=21)
+```
+
+```{r}
+#calculate total variance explained by each principal component
+var_explained = pc$sdev^2 / sum(pc$sdev^2)
+
+#create scree plot
+library(ggplot2)
+
+qplot(c(1:4), var_explained) + 
+  geom_line() + 
+  xlab("Principal Component") + 
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot") +
+  ylim(0, 1)
+```
+- PC1 explains about 73.7% and PC2 explained about 22.1% of variability.
+
+- Another way interpreting the plot is PC1 is positively correlated with the variables Petal Length, Petal Width, and Sepal Length, and PC1 is negatively correlated with Sepal Width.
+
+- PC2 is highly negatively correlated with Sepal Width.
+
+```{r}
+library(ggplot2)
+library(usethis)
+library(devtools)
+install_github("vqv/ggbiplot")
+library(ggbiplot)
+g <- ggbiplot(pc,
+              obs.scale = 1,
+              var.scale = 1,
+              groups = iris$Species,
+              ellipse = TRUE,
+              circle = TRUE,
+              ellipse.prob = 0.68)
+g <- g + scale_color_discrete(name = '')
+g <- g + theme(legend.direction = 'horizontal',
+               legend.position = 'top')
+print(g)
+```
+
+Bi plot is an important tool in PCA to understand what is going on in the dataset.
+
+
+
